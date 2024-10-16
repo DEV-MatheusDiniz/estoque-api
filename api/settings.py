@@ -30,13 +30,17 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+BIBLIOTECAS_APPS = [
+    'rest_framework',
 ]
 
 MEUS_APPS = [
@@ -48,7 +52,13 @@ MEUS_APPS = [
     'api.compras',
 ]
 
-INSTALLED_APPS = INSTALLED_APPS + MEUS_APPS
+INSTALLED_APPS = DJANGO_APPS + BIBLIOTECAS_APPS + MEUS_APPS
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

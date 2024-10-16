@@ -7,7 +7,7 @@ from .categorias import ProdutoCategoriaModel
 class ProdutoModel(models.Model):
     ds_nome = models.CharField(max_length=100)
     nu_valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    nu_quantidade_estoque = models.DecimalField(max_digits=10, decimal_places=2)
+    nu_quantidade_estoque = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     fk_tipo = models.ForeignKey(ProdutoTipoModel, on_delete=models.CASCADE)
     fk_categoria = models.ForeignKey(ProdutoCategoriaModel, on_delete=models.CASCADE)
