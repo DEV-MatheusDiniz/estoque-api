@@ -43,7 +43,8 @@ MEUS_APPS = [
     'api.clientes',
     'api.vendas',
     'api.servicos',
-    'api.produtos'
+    'api.produtos',
+    'api.fornecedores',
 ]
 
 INSTALLED_APPS = INSTALLED_APPS + MEUS_APPS
