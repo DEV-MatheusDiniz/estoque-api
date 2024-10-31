@@ -135,7 +135,7 @@ class VendaServicosAPIView(APIView):
                     )
 
         except Exception as erro:
-            print(f"Erro no método PATCH: {erro}")
+            print(f"Erro: {erro}")
             return Response(
                 {"error": "Erro ao processar a solicitação."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
