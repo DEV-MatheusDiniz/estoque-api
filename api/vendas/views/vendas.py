@@ -36,3 +36,26 @@ class VendasAPIView(APIView):
         vendas_serializer = VendaSerializer(venda).data
 
         return Response(vendas_serializer)
+    
+    def delete(self, request, id):
+        try:
+            venda = VendasModel.objects.get(id=id)
+
+            serializer = VendaSerializer(venda).data
+
+            venda.delete()
+
+            return Response(serializer)
+
+        except VendasModel.DoesNotExist:
+                    return Response(
+                        {"error": "Venda não encontrada."},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+        except Exception as erro:
+            print(f"Erro: {erro}")
+            return Response(
+                {"error": "Erro ao processar a solicitação."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
