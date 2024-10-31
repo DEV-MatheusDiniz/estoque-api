@@ -19,7 +19,7 @@ class VendaServicosAPIView(APIView):
         """
         try:
             if id_venda_servico and id_venda:
-                result = VendaServicoModel.objects.filter(id=id_venda_servico, fk_venda=id_venda)
+                result = VendaServicoModel.objects.filter(fk_servico=id_venda_servico, fk_venda=id_venda)
             elif id_venda:
                 result = VendaServicoModel.objects.filter(fk_venda=id_venda)
 
@@ -31,13 +31,12 @@ class VendaServicosAPIView(APIView):
             print(erro)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
+    def post(self, request, id_venda):
         """
         Salvar o serviço de uma venda.
 
         Exemplo de requisição:
         {
-            "fk_venda": 1,
             "fk_servico": 1
         }
         """
@@ -52,7 +51,7 @@ class VendaServicosAPIView(APIView):
             requisicao["nu_valor_unitario"] = servico.nu_valor_unitario
 
             # fk_venda
-            venda = VendasModel.objects.get(id=requisicao["fk_venda"])
+            venda = VendasModel.objects.get(id=id_venda)
             requisicao["fk_venda"] = venda
 
             # Verificar se já tem o serviço na venda
@@ -80,28 +79,64 @@ class VendaServicosAPIView(APIView):
             print(erro)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, id_venda, id):
+    def put(self, request, id_venda, id_venda_servico):
         """
-        Alterar o serviço de uma venda
+        Altualiza o serviço de uma venda
+
+        Deve ser passado apenas nu_quantidade na requisição
         """
         try:
-            requisicao = request.data
+            # Obter dados da venda
+            venda = VendasModel.objects.get(id=id_venda)
 
-            # Tenta recuperar o objeto VendaServicoModel correspondente
-            try:
-                venda_servico = VendaServicoModel.objects.get(id=id, fk_venda=id_venda)
-            except VendaServicoModel.DoesNotExist:
-                return Response({"error": "Serviço não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            # Obter dados do serviço atual de uma venda
+            venda_servico = VendaServicoModel.objects.get(
+                fk_servico=id_venda_servico, fk_venda=id_venda
+            )
+            serializer_venda_servico_atual = VendaServicosSerializer(
+                venda_servico
+            ).data
 
-            # Atualiza o objeto com os dados da requisição
-            serializer = VendaServicosSerializer(venda_servico, data=requisicao, partial=True)
+            # Atualizar serviço
+            nu_quantidade = request.data["nu_quantidade"]
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            venda_servico.nu_quantidade = nu_quantidade
+            venda_servico.save()
+
+            # Atualizar venda
+            diferenca_nu_subtotal = (
+                venda_servico.nu_subtotal
+                - serializer_venda_servico_atual["nu_subtotal"]
+            )
+
+            venda.nu_valor_total += diferenca_nu_subtotal
+            venda.save()
+            
+            # Obter dados do serviço atualizado da venda
+            venda_servico_atualizado = VendaServicoModel.objects.get(
+                fk_servico=id_venda_servico, fk_venda=id_venda
+            )
+            serializer_venda_servico_atualizado = VendaServicosSerializer(
+                venda_servico_atualizado
+            ).data
+
+            return Response(serializer_venda_servico_atualizado, status=status.HTTP_200_OK)
+
+        except VendaServicoModel.DoesNotExist:
+                return Response(
+                    {"error": "Serviço não encontrado."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        
+        except VendasModel.DoesNotExist:
+                    return Response(
+                        {"error": "Venda não encontrada."},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
 
         except Exception as erro:
-            print(f"Erro no método PUT: {erro}")
-            return Response({"error": "Erro ao processar a solicitação."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(f"Erro no método PATCH: {erro}")
+            return Response(
+                {"error": "Erro ao processar a solicitação."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

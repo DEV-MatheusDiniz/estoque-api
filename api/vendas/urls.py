@@ -8,6 +8,6 @@ urlpatterns = [
     path('vendas/<int:id>', VendasAPIView.as_view()),
     
     path('vendas/servicos/', VendaServicosAPIView.as_view()),
-    path('vendas/servicos/<int:id_venda>', VendaServicosAPIView.as_view()),
-    path('vendas/servicos/<int:id_venda>/<int:id_venda_servico>/', VendaServicosAPIView.as_view()),
+    path('vendas/<int:id_venda>/servicos/', VendaServicosAPIView.as_view()),
+    path('vendas/<int:id_venda>/servicos/<int:id_venda_servico>/', VendaServicosAPIView.as_view()),
 ]
