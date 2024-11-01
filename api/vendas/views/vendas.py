@@ -9,34 +9,68 @@ from ..serializers.vendas import VendaSerializer
 
 
 class VendasAPIView(APIView):
-    permission_classes = (AllowAny, )
+    permission_classes = (AllowAny,)
 
-    def get(self, request, id=None, *args, **kwargs):
-        if id:
-            result = VendasModel.objects.filter(id=id)
-        else:    
-            result = VendasModel.objects.all()
-        
-        vendas_serializer = VendaSerializer(result, many=True).data
+    def get(self, request, id=None):
+        try:
+            if id:
+                result = VendasModel.objects.filter(id=id)
+            else:
+                result = VendasModel.objects.all()
 
-        return Response(vendas_serializer)
+            vendas_serializer = VendaSerializer(result, many=True).data
 
-    def post(self, request, *args, **kwargs):
-        funcionario = request.user
+            return Response(vendas_serializer)
 
-        requisicao = request.data
+        except VendasModel.DoesNotExist:
+            return Response(
+                {"error": "Venda não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        cliente = ClienteModel.objects.get(id=requisicao["fk_cliente"])
+        except Exception as erro:
+            print(f"Erro: {erro}")
+            return Response(
+                {"error": "Erro ao processar a solicitação."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-        requisicao["fk_funcionario"] = funcionario
-        requisicao["fk_cliente"] = cliente
-        
-        venda = VendasModel.objects.create(**requisicao)
+    def post(self, request):
+        try:
+            funcionario = request.user
 
-        vendas_serializer = VendaSerializer(venda).data
+            requisicao = request.data
 
-        return Response(vendas_serializer)
-    
+            cliente = ClienteModel.objects.get(id=requisicao["fk_cliente"])
+
+            requisicao["fk_funcionario"] = funcionario
+            requisicao["fk_cliente"] = cliente
+
+            venda = VendasModel.objects.create(**requisicao)
+
+            vendas_serializer = VendaSerializer(venda).data
+
+            return Response(vendas_serializer)
+
+        except ClienteModel.DoesNotExist:
+            return Response(
+                {"error": "Cliente não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except VendasModel.DoesNotExist:
+            return Response(
+                {"error": "Venda não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except Exception as erro:
+            print(f"Erro: {erro}")
+            return Response(
+                {"error": "Erro ao processar a solicitação."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
     def delete(self, request, id):
         try:
             venda = VendasModel.objects.get(id=id)
@@ -48,10 +82,10 @@ class VendasAPIView(APIView):
             return Response(serializer)
 
         except VendasModel.DoesNotExist:
-                    return Response(
-                        {"error": "Venda não encontrada."},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
+            return Response(
+                {"error": "Venda não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         except Exception as erro:
             print(f"Erro: {erro}")

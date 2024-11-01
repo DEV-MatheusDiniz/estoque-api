@@ -19,7 +19,9 @@ class VendaServicosAPIView(APIView):
         """
         try:
             if id_venda_servico and id_venda:
-                result = VendaServicoModel.objects.filter(fk_servico=id_venda_servico, fk_venda=id_venda)
+                result = VendaServicoModel.objects.filter(
+                    fk_servico=id_venda_servico, fk_venda=id_venda
+                )
             elif id_venda:
                 result = VendaServicoModel.objects.filter(fk_venda=id_venda)
 
@@ -27,9 +29,18 @@ class VendaServicosAPIView(APIView):
 
             return Response(serializer)
 
+        except VendaServicoModel.DoesNotExist:
+            return Response(
+                {"error": "Serviço não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         except Exception as erro:
-            print(erro)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            print(f"Erro: {erro}")
+            return Response(
+                {"error": "Erro ao processar a solicitação."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def post(self, request, id_venda):
         """
@@ -55,7 +66,9 @@ class VendaServicosAPIView(APIView):
             requisicao["fk_venda"] = venda
 
             # Verificar se já tem o serviço na venda
-            venda_possui_servico = VendaServicoModel.objects.filter(fk_venda=venda, fk_servico=servico).first()
+            venda_possui_servico = VendaServicoModel.objects.filter(
+                fk_venda=venda, fk_servico=servico
+            ).first()
 
             if venda_possui_servico:
                 """Soma mais 1 quantidade no serviço já existente"""
@@ -75,9 +88,24 @@ class VendaServicosAPIView(APIView):
 
             return Response(serializer, status=status.HTTP_200_OK)
 
+        except VendasModel.DoesNotExist:
+            return Response(
+                {"error": "Venda não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except VendaServicoModel.DoesNotExist:
+            return Response(
+                {"error": "Serviço não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         except Exception as erro:
-            print(erro)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            print(f"Erro: {erro}")
+            return Response(
+                {"error": "Erro ao processar a solicitação."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def put(self, request, id_venda, id_venda_servico):
         """
@@ -93,9 +121,7 @@ class VendaServicosAPIView(APIView):
             venda_servico = VendaServicoModel.objects.get(
                 fk_servico=id_venda_servico, fk_venda=id_venda
             )
-            serializer_venda_servico_atual = VendaServicosSerializer(
-                venda_servico
-            ).data
+            serializer_venda_servico_atual = VendaServicosSerializer(venda_servico).data
 
             # Atualizar serviço
             nu_quantidade = request.data["nu_quantidade"]
@@ -111,7 +137,7 @@ class VendaServicosAPIView(APIView):
 
             venda.nu_valor_total += diferenca_nu_subtotal
             venda.save()
-            
+
             # Obter dados do serviço atualizado da venda
             venda_servico_atualizado = VendaServicoModel.objects.get(
                 fk_servico=id_venda_servico, fk_venda=id_venda
@@ -120,19 +146,21 @@ class VendaServicosAPIView(APIView):
                 venda_servico_atualizado
             ).data
 
-            return Response(serializer_venda_servico_atualizado, status=status.HTTP_200_OK)
+            return Response(
+                serializer_venda_servico_atualizado, status=status.HTTP_200_OK
+            )
 
         except VendaServicoModel.DoesNotExist:
-                return Response(
-                    {"error": "Serviço não encontrado."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        
+            return Response(
+                {"error": "Serviço não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         except VendasModel.DoesNotExist:
-                    return Response(
-                        {"error": "Venda não encontrada."},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
+            return Response(
+                {"error": "Venda não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         except Exception as erro:
             print(f"Erro: {erro}")
