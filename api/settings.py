@@ -41,6 +41,7 @@ DJANGO_APPS = [
 
 BIBLIOTECAS_APPS = [
     'rest_framework',
+    'drf_spectacular',
 ]
 
 MEUS_APPS = [
@@ -55,6 +56,7 @@ MEUS_APPS = [
 INSTALLED_APPS = DJANGO_APPS + BIBLIOTECAS_APPS + MEUS_APPS
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ]
